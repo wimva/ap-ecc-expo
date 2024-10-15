@@ -1,18 +1,41 @@
-import { View, SafeAreaView, Alert, Image, StyleSheet, TouchableOpacity, Platform } from 'react-native';
-import { Link } from 'expo-router';
-import React from 'react';
+import { View, SafeAreaView, Alert, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState } from 'react';
 import { ThemedText } from '@/components/ThemedText';
 import * as WebBrowser from 'expo-web-browser';
-
+import * as AuthSession from 'expo-auth-session';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
 
 export default function HomeScreen() {
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    // Check if the user ID is already stored
+    const checkAuthStatus = async () => {
+      try {
+        const userId = await AsyncStorage.getItem('userId');
+        if (userId) {
+          console.log(userId);
+          // Navigate to tabs if user is already authenticated
+          router.replace('/(tabs)');
+        } else {
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Error checking authentication status:', error);
+        setLoading(false);
+      }
+    };
+
+    checkAuthStatus();
+  }, []);
+
   const handleGoogleLogin = async () => {
     try {
       // URL to initiate the OAuth flow on your server
-      const authUrl = 'http://localhost:3000/auth/google'; // Replace with your server URL
-
-      // Generate the redirect URI
-      const redirectUri = 'yourapp://auth/google/callback';
+      const authUrl = 'https://ap-ecc-express.onrender.com/auth/google'; // Replace with your server URL
+      const redirectUri = AuthSession.makeRedirectUri();
 
       // Open the web browser for Google authentication
       const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
@@ -21,10 +44,15 @@ export default function HomeScreen() {
         // Handle the redirect URL
         const params = new URL(result.url).searchParams;
 
-        // Extract any parameters (e.g., tokens, profile data)
-        const user = params.get('user');
-        console.log('Authenticated user:', user);
-        Alert.alert('Authentication successful!', `Welcome, ${user}`);
+        // Extract user ID or other parameters (e.g., tokens, profile data)
+        const user = params.get('user'); // Replace with the correct parameter from your server's redirect URL
+        if (user) {
+          // Store the user ID
+          await AsyncStorage.setItem('userId', user);
+
+          // Navigate to tabs after successful login
+          router.replace('/(tabs)');
+        }
       } else {
         Alert.alert('Authentication canceled or failed');
       }
@@ -34,12 +62,22 @@ export default function HomeScreen() {
     }
   };
 
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
+          <ActivityIndicator size="large" color="#0000ff" />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <TouchableOpacity  onPress={() => handleGoogleLogin()}>          
+        <TouchableOpacity onPress={() => handleGoogleLogin()}>
           <ThemedText type="title">LOGIN</ThemedText>
-        </TouchableOpacity> 
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -47,8 +85,8 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   safeArea: {
-    backgroundColor:"#ccc",
-    flex: 1
+    backgroundColor: "#ccc",
+    flex: 1,
   },
   container: {
     flex: 1,
