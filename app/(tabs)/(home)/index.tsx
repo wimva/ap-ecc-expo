@@ -6,9 +6,7 @@ import useMessages from '@/data/messages';
 export default function HomeScreen() {
   const { data, isLoading, isError } = useMessages();
 
-  console.log(data);
-
-  if (isLoading) {
+  if (isLoading || !data) {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>

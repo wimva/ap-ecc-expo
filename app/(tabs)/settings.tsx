@@ -1,14 +1,46 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, SafeAreaView, Text, StyleSheet, TextInput, Button } from 'react-native';
+import useUserGet from '@/data/user-get';
+import useUserPut from '@/data/user-put';
+import { useLocalSearchParams } from 'expo-router'
+import { ThemedText } from '@/components/ThemedText';
+import { useEffect, useState } from 'react';
 
 export default function SettingsScreen() {
+  const params = useLocalSearchParams();
+  const { data, isLoading, isError } = useUserGet(params.userId);
+  const { trigger, isMutating } = useUserPut(params.userId);
+  const [username, setUsername] = useState('');
+
+  useEffect(() => {
+    if (data) {
+      setUsername(data.username);
+    }
+  }, [data]);
+
+  if (isMutating || isLoading || !data) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
+          <ThemedText>Loading...</ThemedText>
+        </View>
+      </SafeAreaView>
+    );
+  }
+  
   return (
-    <View style={styles.container}>
-      <Text>Settings</Text>
-    </View>
+    <SafeAreaView style={styles.container}>
+      <ThemedText>Settings</ThemedText>
+      <TextInput value={username} onChangeText={setUsername} />
+      <Button title="Save" onPress={() => trigger({username})} />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    backgroundColor:"#ccc",
+    flex: 1
+  },
   container: {
     flex: 1,
     justifyContent: 'center',

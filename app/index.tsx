@@ -30,8 +30,6 @@ export default function LoginScreen() {
 
         const result =  await WebBrowser.openAuthSessionAsync(authUrl, redirectUrl);
 
-        console.log(result);
-
         if (result.type === 'success' && result.url) {
             // Handle the redirect URL
             const params = new URL(result.url).searchParams;
