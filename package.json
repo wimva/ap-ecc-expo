@@ -49,5 +49,8 @@
     "react-test-renderer": "18.2.0",
     "typescript": "~5.3.3"
   },
-  "private": true
+  "private": true,
+  "volta": {
+    "node": "24.10.0"
+  }
 }
