@@ -1,11 +1,7 @@
 import { View, Alert, SafeAreaView, TouchableOpacity, Image, StyleSheet, Platform, TextInput } from 'react-native';
-import { Link } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
-import useMessages from '@/data/messages';
 import { useEffect, useState } from 'react';
 import {API_URL} from '@/constants/Api'
-import * as WebBrowser from 'expo-web-browser';
-import * as AuthSession from 'expo-auth-session';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import useSWRMutation from 'swr/mutation';
@@ -13,12 +9,14 @@ import useSWRMutation from 'swr/mutation';
 export default function LoginScreen() {
    const router = useRouter();
    const [email, setEmail] = useState('');
+   const [password, setPassword] = useState('');
 
     useEffect(() => {
         const checkLogin = async () => {
             const userId = await AsyncStorage.getItem('userId');
             if (userId) {
-                router.replace('/(tabs)');
+                router.replace('/(tabs)/(home)');
+                await AsyncStorage.removeItem('userId');
             }
         };
     
@@ -26,11 +24,11 @@ export default function LoginScreen() {
     }, []);
 
   // Email login additions
-  const fetchUserByEmail = async (url: string, { arg }: { arg: string }) => {
-    const res = await fetch(`${API_URL}/users/by-email`, {
+  const fetchLogin = async (url: string, { arg }: { arg: { email: string; password: string } }) => {
+    const res = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: arg }),
+      body: JSON.stringify(arg),
     });
     if (!res.ok) {
       const text = await res.text().catch(() => '');
@@ -39,22 +37,22 @@ export default function LoginScreen() {
     return res.json();
   };
 
-  const { trigger: getUserByEmail, isMutating } = useSWRMutation('/users/by-email', fetchUserByEmail);
+  const { trigger: loginUser, isMutating } = useSWRMutation('/auth/login', fetchLogin);
 
   const handleEmailLogin = async () => {
-    if (!email) {
-      Alert.alert('Please enter an email address');
+    if (!email || !password) {
+      Alert.alert('Please enter both email and password');
       return;
     }
     try {
-      const data = await getUserByEmail(email);
+      const data = await loginUser({ email, password });
       const userId = data?.id ?? data?.user?.id;
       if (!userId) {
         Alert.alert('User not found', 'Server did not return a user id');
         return;
       }
       await AsyncStorage.setItem('userId', userId);
-      router.replace('/(tabs)');
+      router.replace('/(tabs)/(home)');
     } catch (err: any) {
       console.log(err);
       Alert.alert('Error', err?.message ?? 'Failed to get user by email');
@@ -73,9 +71,17 @@ export default function LoginScreen() {
           autoCapitalize="none"
           autoCorrect={false}
         />
+        <TextInput
+          style={styles.input}
+          value={password}
+          onChangeText={setPassword}
+          placeholder="Password"
+          secureTextEntry
+          autoCapitalize="none"
+        />
 
         <TouchableOpacity onPress={handleEmailLogin} disabled={isMutating} style={[styles.button, isMutating && styles.buttonDisabled]}>
-           <ThemedText type="title">{isMutating ? 'Logging in...' : 'LOGIN WITH EMAIL'}</ThemedText>     
+           <ThemedText type="title">{isMutating ? 'Logging in...' : 'LOGIN'}</ThemedText>     
         </TouchableOpacity>
 
       </View>
