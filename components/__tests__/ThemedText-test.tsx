@@ -3,8 +3,20 @@ import renderer from 'react-test-renderer';
 
 import { ThemedText } from '../ThemedText';
 
-it(`renders correctly`, () => {
-  const tree = renderer.create(<ThemedText>Snapshot test!</ThemedText>).toJSON();
+jest.mock('@/hooks/useThemeColor', () => ({
+  useThemeColor: jest.fn(() => '#11181C'),
+}));
 
-  expect(tree).toMatchSnapshot();
+it(`renders correctly`, () => {
+  let tree: renderer.ReactTestRenderer;
+
+  renderer.act(() => {
+    tree = renderer.create(<ThemedText>Snapshot test!</ThemedText>);
+  });
+
+  expect(tree.toJSON()).toMatchSnapshot();
+
+  renderer.act(() => {
+    tree.unmount();
+  });
 });
