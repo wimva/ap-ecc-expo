@@ -4,18 +4,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
 
 export default function TabLayout() {
-  const [userId, setUserId] = useState(null);
+  const [userId, setUserId] = useState('');
 
   useEffect(() => {
     const getUserId = async () => {
-      const user = await AsyncStorage.getItem('userId');
-      if (user) {
-        const parsedUser = JSON.parse(user);
-        const userId = parsedUser.id;
+      const userId = await AsyncStorage.getItem('userId');
+      if (userId) {
         setUserId(userId);
       }
-    }
-    getUserId()  
+    };
+    getUserId();
   }, []);
 
   if (!userId) {

@@ -2,7 +2,7 @@ import fetcher from './_fetcher'
 import useSWR from 'swr'
 import { API_URL } from '@/constants/Api'
 
-export default function useUsers () {
+export default function useUsersGet () {
   const { data, error, isLoading } = useSWR(`${API_URL}/users`, fetcher)
  
   return {

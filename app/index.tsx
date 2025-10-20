@@ -4,40 +4,24 @@ import { useEffect, useState } from 'react';
 import {API_URL} from '@/constants/Api'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
-import useSWRMutation from 'swr/mutation';
+import useUserLogin from '@/data/user-login';
 
 export default function LoginScreen() {
-   const router = useRouter();
-   const [email, setEmail] = useState('');
-   const [password, setPassword] = useState('');
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const { trigger: loginUser, isMutating } = useUserLogin();
 
-    useEffect(() => {
-        const checkLogin = async () => {
-            const userId = await AsyncStorage.getItem('userId');
-            if (userId) {
-                router.replace('/(tabs)/(home)');
-                await AsyncStorage.removeItem('userId');
-            }
-        };
-    
-        checkLogin();
-    }, []);
-
-  // Email login additions
-  const fetchLogin = async (url: string, { arg }: { arg: { email: string; password: string } }) => {
-    const res = await fetch(`${API_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(arg),
-    });
-    if (!res.ok) {
-      const text = await res.text().catch(() => '');
-      throw new Error(text || 'Failed to fetch user by email');
-    }
-    return res.json();
-  };
-
-  const { trigger: loginUser, isMutating } = useSWRMutation('/auth/login', fetchLogin);
+  useEffect(() => {
+      const checkLogin = async () => {
+          const userId = await AsyncStorage.getItem('userId');
+          if (userId) {
+              router.replace('/(tabs)/(home)');
+          }
+      };
+  
+      checkLogin();
+  }, []);
 
   const handleEmailLogin = async () => {
     if (!email || !password) {
@@ -55,7 +39,7 @@ export default function LoginScreen() {
       router.replace('/(tabs)/(home)');
     } catch (err: any) {
       console.log(err);
-      Alert.alert('Error', err?.message ?? 'Failed to get user by email');
+      Alert.alert('Error', err?.message ?? 'Failed to log in');
     }
   };
 

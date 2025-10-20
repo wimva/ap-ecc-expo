@@ -1,7 +1,7 @@
 import { View, SafeAreaView, Image, StyleSheet, Platform } from 'react-native';
 import { Link } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
-import useMessages from '@/data/messages';
+import useMessages from '@/data/messages-get';
 
 export default function HomeScreen() {
   const { data, isLoading, isError } = useMessages();
@@ -20,10 +20,19 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <ThemedText type="title">Home</ThemedText>
-        <Link href="/details">View details</Link>
         {data.map((message: any) => (
-          <ThemedText key={message._id}>{message.text}</ThemedText>
+          <View key={message._id} style={styles.messageContainer}>
+            <ThemedText>{message.text}</ThemedText>
+            {message.image && (
+              <Image 
+                source={{ uri: message.image }} 
+                style={styles.messageImage} 
+                resizeMode="contain"
+              />
+            )}
+          </View>
         ))}
+        <Link href="/post"><ThemedText>Create Message</ThemedText></Link>
       </View>
     </SafeAreaView>
   );
@@ -38,5 +47,18 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  messageContainer: {
+    marginVertical: 10,
+    padding: 10,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    width: '90%',
+  },
+  messageImage: {
+    width: '100%',
+    height: 200,
+    marginTop: 10,
+    borderRadius: 8,
   },
 });

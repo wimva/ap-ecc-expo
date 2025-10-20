@@ -1,6 +1,8 @@
-import { Stack } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 
 export default function HomeLayout() {
+  const { userId } = useLocalSearchParams();
+  
   return (
     <Stack
       screenOptions={{
@@ -12,8 +14,8 @@ export default function HomeLayout() {
           fontWeight: 'bold',
         },
       }}>
-      <Stack.Screen name="index" options={{ title: 'Home' }} />
-      <Stack.Screen name="details"  options={{ title: 'Details' }} />
+      <Stack.Screen name="index" options={{ title: 'Home' }} initialParams={{ userId }} />
+      <Stack.Screen name="post"  options={{ title: 'Post' }} initialParams={{ userId }} />
     </Stack>
   );
 }
